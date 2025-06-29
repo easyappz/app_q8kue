@@ -1,37 +1,41 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
 const apiRoutes = require('./apiRoutes');
 
-// Для работы с express
+// Initialize Express app
 const app = express();
 
+// Middleware for parsing JSON bodies (if not already in routes)
+app.use(express.json());
+
+// Mount API routes
 app.use('/api', apiRoutes);
 
 /**
- * Пример создания и записи данных в базу данных
+ * MongoDB connection setup
  */
 const MONGO_URI = process.env.MONGO_URI;
 
-const mongoDb = mongoose.createConnection(MONGO_URI);
-
-mongoDb
-  .asPromise()
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
   .then(() => {
-    console.log('MongoDB connected');
+    console.log('MongoDB connected successfully');
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
   });
 
-// const MongoTestSchema = new mongoose.Schema({
-//   value: { type: String, required: true },
-// });
+// Define a default route for health check
+app.get('/', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
 
-// const MongoModelTest = global.mongoDb.model('Test', MongoTestSchema);
+// Set the port for the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
-// const newTest = new MongoModelTest({
-//   value: 'test-value',
-// });
-
-// newTest.save();
+module.exports = app;
